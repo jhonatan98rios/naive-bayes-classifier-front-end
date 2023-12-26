@@ -6,31 +6,25 @@ export default function Home() {
 
   useEffect(() => {
 
-    function resize() {
-      if (document && document.querySelector('body')) {
-        const body = document.querySelector('body')!
-        body.style.overflow = "hidden"
-        body.style.height = window.innerHeight + "px"
-        body.style.width = window.innerWidth + "px"
-      }
+    if (document && document.querySelector('body')) {
+      const body = document.querySelector('body')!
+      body.style.overflow = "hidden"
+      body.style.height = window.innerHeight + "px"
+      body.style.width = window.innerWidth + "px"
     }
-
-    resize()
-
-    document.onresize = resize
 
   }, [])
 
   return (
-    <div className="flex min-h-screen flex-col items-center -mt-16">
+    <div className="flex min-h-screen flex-col items-center">
 
-      <video autoPlay muted loop id="bg" className="fixed z-0 top-0 left-0 w-full">
+      <video autoPlay muted loop id="bg" className="fixed z-0 top-0 left-0 min-w-full min-h-full">
         <source src="./LPBG.mp4" type="video/mp4" />
       </video>
 
-      <div className="flex flex-col justify-center items-center z-10 h-screen">
+      <div className="flex flex-col justify-center items-center z-10 h-screen w-screen">
 
-        <h1 className="text-6xl text-white font-bold justify-center items-center mb-12 text-center w-11/12 sm:w-9/12 block">
+        <h1 className="text-6xl text-white font-bold justify-center items-center mb-12 text-center w-11/12 sm:w-9/12 block drop-shadow-lg ">
           The Most Flexible
           <span className=" text-[#009BB9]"> Text Classification </span> 
           <br /> Powered By AI
@@ -52,3 +46,10 @@ export default function Home() {
   )
 }
 
+Home.getLayout = function getLayout(page: any) {
+  return (
+    <>
+      {page}
+    </>
+  )
+}

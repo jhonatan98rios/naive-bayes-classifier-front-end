@@ -4,11 +4,13 @@ import type { AppProps } from 'next/app'
 import Layout from './layout'
 
 export default function App({ Component, pageProps }: AppProps) {
+
+  //@ts-ignore
+  const getLayout = Component.getLayout || ((page) => ( <Layout> { page } </Layout>))
+
   return (
     <Provider>
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
+      { getLayout(<Component {...pageProps} />) }
     </Provider>
   )
 }

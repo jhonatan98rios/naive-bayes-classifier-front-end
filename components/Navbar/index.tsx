@@ -4,19 +4,18 @@ import { ExpandableIconButton } from "./ExpandableIconButton";
 import { useState } from "react";
 
 
-export default function Navbar({ }) {
+export default function Navbar({  }) {
 
   const { data: session } = useSession()
-  const [ isExpanded, setExpanded ] = useState(false)
-
+  const [isExpanded, setExpanded] = useState(false)
 
   async function handleSignOut() {
     signOut()
   }
 
   return (session && session.user) && (
-    <nav 
-      className="flex flex-col fixed h-full p-5 bg-white z-10 items-start shadow-2xl" 
+    <nav
+      className="flex flex-col fixed h-[calc(100%-16px)] top-2 left-2 p-5 bg-white z-10 items-start shadow-2xl rounded-lg"
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
     >
@@ -36,7 +35,7 @@ export default function Navbar({ }) {
             alt="Ícone de modelos"
             text="Modelos"
             isExpanded={isExpanded}
-            handleClick={() => {}}
+            handleClick={() => { }}
           />
         </li>
 
@@ -45,7 +44,7 @@ export default function Navbar({ }) {
             alt="Ícone de comunidade"
             text="Comunidade"
             isExpanded={isExpanded}
-            handleClick={() => {}}
+            handleClick={() => { }}
           />
         </li>
 
@@ -54,7 +53,7 @@ export default function Navbar({ }) {
             alt="Ícone de notificações"
             text="Notificações"
             isExpanded={isExpanded}
-            handleClick={() => {}}
+            handleClick={() => { }}
           />
         </li>
       </ul>

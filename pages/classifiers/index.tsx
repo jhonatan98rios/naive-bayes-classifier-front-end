@@ -75,27 +75,30 @@ export default function Classifiers({ _classifiers, session }: ClassifiersProps)
 
   return (
     <main className="flex min-h-screen flex-col p-4">
-      <h1 className='text-2xl mb-4 font-semibold text-blue-700'>
-        Classifiers
-      </h1>
 
       {
-        !classifiers &&
-        <p className='text-base mb-4'>
-          Actually, there is no classifiers. Click on button bellow to create a new classifier.
-        </p>
-      }
+        (!classifiers || classifiers.length == 0) &&
+        <div className='border-2 border-dashed border-gray-500 w-11/12 max-w-3xl mx-auto text-center flex flex-col justify-center items-center rounded-2xl py-16 mt-60'>
 
-      <Link
-        href="/publish"
-        className="flex py-2 w-56 font-semibold rounded-xl h-12 justify-center items-center p-4
-          bg-gradient-to-r from-[#5D95E6] to-[#935AFF] text-white"
-      > Create a new model </Link>
+          <p className='text-xl font-medium text-gray-500'> 
+            Actually, there is no classifiers.
+          </p>
+
+          <p className='text-base mb-4 text-gray-500'>
+            Drag and Drop a file or click on button bellow to create a new classifier.
+          </p>
+
+          <Link href="/publish" className='w-12 h-12 rounded-full p-3 bg-white shadow-sm drop-shadow-md'>
+            <img src="/plus.svg" alt="" />
+          </Link>
+        </div>
+      }
 
 
       <div className='flex flex-col items-center'>
         {
-          classifiers && classifiers.length > 0 && classifiers.map((classifier, index) => (
+          (classifiers && classifiers.length > 0) && 
+          classifiers.map((classifier, index) => (
             <ClassifierCard classifier={classifier} key={index} />
           ))
         }
@@ -107,15 +110,11 @@ export default function Classifiers({ _classifiers, session }: ClassifiersProps)
 
 export const getServerSideProps: GetServerSideProps<{ _classifiers: ClassifierDTO[] }> = (async (context) => {
 
-  
-
   const session = await getServerSession(
     context.req,
     context.res,
     authOptions
   )
-
-  console.log(session)
 
   if (!session || !session.user) {
     return { props: { _classifiers: [] }, redirect: { destination: '/' } }
@@ -128,7 +127,6 @@ export const getServerSideProps: GetServerSideProps<{ _classifiers: ClassifierDT
       }
     });
 
-    //@ts-ignore
     console.log("fetching with access token: ", session?.accessToken)
 
     const _classifiers: ClassifierDTO[] = await response.json()

@@ -11,7 +11,7 @@ export function ExpandableIconButton({ text, icon="https://static.thenounproject
     <div className="flex items-center justify-center py-4">
       <button onClick={handleClick} className="flex items-center">
         <img
-          className="w-6 mx-1"
+          className="w-6 mx-[6px]"
           src={icon}
           alt={alt}
         />
