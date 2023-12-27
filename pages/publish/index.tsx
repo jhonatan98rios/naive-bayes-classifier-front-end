@@ -1,11 +1,12 @@
-import { useState, ChangeEvent } from 'react'
+import { useState, ChangeEvent, useEffect } from 'react'
 import { useRouter } from 'next/navigation';
 import { ClassifierDTO } from '@/domain/entities/Classifier';
-import { Spinner } from '@/components/Spinner';
 import { useSession } from 'next-auth/react';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { getServerSession } from 'next-auth';
 import { GetServerSideProps } from 'next';
+import { DragAndDropFileUploader } from '@/components/DragAndDropFileUploader';
+import { uploadFile } from '@/usecases/FileUpload';
 
 enum STATUS {
   NOFILE = 0,
@@ -23,9 +24,11 @@ export default function Publish() {
 
   const router = useRouter();
   const [name, setName] = useState('')
+
+
   const [visibility, setVisibility] = useState<VISIBILITY>(VISIBILITY.public)
   const [file, setFile] = useState<any>()
-  
+
   const [path, setPath] = useState()
   const [id, setId] = useState()
 
@@ -41,13 +44,14 @@ export default function Publish() {
       setStatus(STATUS.LOADING)
 
       try {
+        //@ts-ignore
         const { path: uploadedFilePath, id: uploadedFileId } = await uploadFile(file)
 
         setPath(uploadedFilePath)
         setId(uploadedFileId)
 
         setTimeout(() => {
-          setStatus(STATUS.DONE)          
+          setStatus(STATUS.DONE)
         }, 1500);
 
       } catch (err) {
@@ -57,30 +61,6 @@ export default function Publish() {
       }
     }
   };
-
-  const uploadFile = async (file: File) => {
-
-    if (!file) return
-
-    const formData = new FormData()
-    formData.append('filename', file.name)
-    formData.append('file', file)
-
-    const uploadRes = await fetch('http://localhost:3001/upload', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        "Access-Control-Allow-Origin": "http://localhost:3000",
-        //@ts-ignore
-        "Authorization": session?.accessToken,
-      }
-    })
-
-    const fileUploadRes = await uploadRes.json()
-
-    console.log(fileUploadRes)
-    return fileUploadRes
-  }
 
   const handleUploadClick = async (e: any) => {
     e.preventDefault()
@@ -105,7 +85,7 @@ export default function Publish() {
 
     console.log('classifierData:')
     console.log(classifierData)
-    
+
     try {
       const res = await fetch('http://localhost:3001/publish', {
         method: 'POST',
@@ -128,57 +108,91 @@ export default function Publish() {
     }
   }
 
+
   return (
     <main className='flex min-h-screen flex-col p-4'>
-      <div>
-        <h1 className='text-2xl mb-4 font-semibold text-blue-700'> Publish a new model </h1>
 
+      <div className='bg-white rounded-2xl mt-48 p-8 shadow-md drop-shadow-sm w-full max-w-3xl mx-auto'>
+
+        <h1 className='text-xl mb-4 font-semibold text-gray-500 text-center'> Informe os dados do modelo </h1>
         <form className='flex flex-col'>
 
-          <label htmlFor="" className='mb-2'> Classifier name: </label>
-          <input 
-            type="text" 
-            name="classifier_name"
-            className='w-80 mb-4 border rounded border-blue-500 py-2 px-4'
-            value={name} onChange={(e) => setName(e.target.value)} 
-          />
+          <div className='flex'>
+            <div className='w-6/12'>
 
-          <label htmlFor="visibility"> Classifier visibility </label>
-          <select 
-            id="visibility" 
-            name="visibility" 
-            value={visibility} 
-            className='w-64 mt-2 mb-4' 
-            onChange={(e) => setVisibility( e.target.value as any )}
+              <div className='flex flex-col mb-4'>
+                <label htmlFor="" className='mb-2 font-semibold text-gray-500'> Nome do modelo: </label>
+                <input
+                  type="text"
+                  name="classifier_name"
+                  className='w-80 border rounded border-gray-300 py-2 px-4'
+                  value={name} onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div className='flex flex-col mb-4'>
+                <label htmlFor="" className='mb-2 font-semibold text-gray-500'> Descrição do modelo: </label>
+                <textarea
+                  name="classifier_name"
+                  className='w-80 border h-36 rounded border-gray-300 py-2 px-4 resize-y'
+                  value={name} onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+            </div>
+
+            <div className='w-6/12'>
+              <DragAndDropFileUploader 
+                status={status} 
+                setStatus={setStatus} 
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className='flex flex-col mb-4'>
+              <label htmlFor="" className='mb-2 font-semibold text-gray-500'> Proprietarios pelo modelo: </label>
+              <input
+                type="text"
+                name="classifier_name"
+                className='w-full border rounded border-gray-300 py-2 px-4'
+                value={name} onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
+            <div className='flex flex-col mb-6'>
+
+              <div className='flex ml-2'>
+                <input
+                  type="checkbox"
+                  id="visibility"
+                  checked={visibility == VISIBILITY.public}
+                  onChange={() => setVisibility(visibility == VISIBILITY.public ? VISIBILITY.private : VISIBILITY.public)}
+                />
+                <label 
+                  htmlFor="visibility" 
+                  className='ml-2 font-semibold text-gray-500'
+                >
+                  Esse modelo poderá ser acessado públicamente?
+                </label>
+              </div>
+
+              <ul className='text-[10px] list-disc ml-12 font-semibold text-gray-500'>
+                <li> Modelos públicos podem ser utilizados por qualquer um com uma conta, mas só podem ser editados pelos proprietarios </li>
+                <li> Modelos privados somente podem ser acessados e editados pelos proprietarios </li>
+              </ul>             
+            </div>
+          </div>
+
+          <button
+            onClick={handleUploadClick}
+            className={`
+              flex font-semibold py-2 border rounded-xl w-full justify-center
+              ${ true ? 'bg-gray-400 text-white' : '' }
+            `}
           >
-            <option value={VISIBILITY.public}> Public </option>
-            <option value={VISIBILITY.private}> Private </option>
-          </select>
-
-          <label htmlFor="file" className='mb-2'> File Upload: </label>
-          <input 
-            type="file" 
-            name="file" 
-            id="file" 
-            onChange={handleFileChange} 
-          />
-
-          {
-            status == STATUS.LOADING && <Spinner />
-          }
-
-          {
-            status == STATUS.DONE &&
-            <>
-              <p className='my-4'> File path: { path } </p>
-              <button 
-                onClick={handleUploadClick} 
-                className="flex bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 border border-blue-500 hover:border-transparent rounded w-56 justify-center"
-              >
-                Upload
-              </button>
-            </>
-          }
+            Confirmar criação do modelo
+          </button>
 
           {
             status == STATUS.ERROR &&

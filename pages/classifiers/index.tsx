@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { authOptions } from "../api/auth/[...nextauth]"
 import { ClassifierCard } from '@/components/ClassifierCard'
+import DragAndDrop from '@/components/DragAndDrop'
 
 
 interface ClassifiersProps {
@@ -75,29 +76,25 @@ export default function Classifiers({ _classifiers, session }: ClassifiersProps)
 
   return (
     <main className="flex min-h-screen flex-col p-4">
+      {/* <DragAndDrop /> */}
 
       {
-        (!classifiers || classifiers.length == 0) &&
-        <div className='border-2 border-dashed border-gray-500 w-11/12 max-w-3xl mx-auto text-center flex flex-col justify-center items-center rounded-2xl py-16 mt-60'>
-
-          <p className='text-xl font-medium text-gray-500'> 
-            Actually, there is no classifiers.
-          </p>
-
-          <p className='text-base mb-4 text-gray-500'>
-            Drag and Drop a file or click on button bellow to create a new classifier.
-          </p>
-
-          <Link href="/publish" className='w-12 h-12 rounded-full p-3 bg-white shadow-sm drop-shadow-md'>
-            <img src="/plus.svg" alt="" />
-          </Link>
-        </div>
+        !(classifiers && classifiers.length > 0) &&
+        <p className='mx-auto mt-64 text-2xl text-gray-500 text-center'> 
+          Actually, there is no classifiers. <br/> 
+          Please, <Link href="/publish" className='text-purple-500' > click here </Link> to create a new one 
+        </p>
       }
 
+      <Link href="/publish">
+        <div className='w-12 h-12 rounded-full p-3 bg-white shadow-sm drop-shadow-md fixed right-16 bottom-8'>
+          <img src="/plus.svg" alt="" />
+        </div>
+      </Link>
 
       <div className='flex flex-col items-center'>
         {
-          (classifiers && classifiers.length > 0) && 
+          (classifiers && classifiers.length > 0) &&
           classifiers.map((classifier, index) => (
             <ClassifierCard classifier={classifier} key={index} />
           ))

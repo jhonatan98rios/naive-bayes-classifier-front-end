@@ -15,7 +15,7 @@ export default function Navbar({  }) {
 
   return (session && session.user) && (
     <nav
-      className="flex flex-col fixed h-[calc(100%-16px)] top-2 left-2 p-5 bg-white z-10 items-start shadow-2xl rounded-lg"
+      className="flex flex-col fixed h-[calc(100%-16px)] top-2 left-2 p-5 bg-white z-10 items-start shadow-md drop-shadow-sm rounded-lg"
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
     >
