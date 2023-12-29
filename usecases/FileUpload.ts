@@ -1,3 +1,5 @@
+import { Session } from "next-auth"
+
 export const fileValidation = (file: File) => {
 
   if (file.type !== 'text/csv') return false
@@ -6,7 +8,7 @@ export const fileValidation = (file: File) => {
   return true
 }
 
-export const uploadFile = async (file: File) => {
+export const uploadFile = async (file: File, session: Session) => {
 
   if (!file) return
 
@@ -14,22 +16,21 @@ export const uploadFile = async (file: File) => {
   formData.append('filename', file.name)
   formData.append('file', file)
 
-  return formData
+  const uploadRes = await fetch('http://localhost:3001/upload', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      "Access-Control-Allow-Origin": "http://localhost:3000",
+      //@ts-ignore
+      "Authorization": session?.accessToken,
+    }
+  })
 
-  // const uploadRes = await fetch('http://localhost:3001/upload', {
-  //   method: 'POST',
-  //   body: formData,
-  //   headers: {
-  //     "Access-Control-Allow-Origin": "http://localhost:3000",
-  //     //@ts-ignore
-  //     "Authorization": session?.accessToken,
-  //   }
-  // })
+  const fileUploadRes = await uploadRes.json()
 
-  // const fileUploadRes = await uploadRes.json()
-
-  // console.log(fileUploadRes)
-  // return fileUploadRes
+  console.log('fileUploadRes')
+  console.log(fileUploadRes)
+  return fileUploadRes
 }
 
 
