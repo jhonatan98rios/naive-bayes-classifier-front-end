@@ -1,18 +1,12 @@
+import { FILE_STATUS } from "@/domain/entities/FileStatus";
 import { useEffect, useState } from "react"
 
-enum STATUS {
-  NOFILE = 0,
-  LOADING = 1,
-  DONE = 2,
-  ERROR = 3
-}
 
 interface IProgressBar {
-  handleComplete: () => any
-  status: STATUS
+  status: FILE_STATUS
 }
 
-export const ProgressBar = ({ handleComplete, status }: IProgressBar) => {
+export const ProgressBar = ({ status }: IProgressBar) => {
 
   const [ progress, setProgress ] = useState(0)
 
@@ -20,21 +14,23 @@ export const ProgressBar = ({ handleComplete, status }: IProgressBar) => {
     const interval = setInterval(() => {
 
       setProgress(progress => {
-        if (progress < 100 ) return progress + 1
+        if (progress < 90 ) return progress + 1
 
         clearInterval(interval)
         return progress        
       })
-    }, 50)
+    }, 20)
     
     return () => clearInterval(interval);
   }, []);
-  
+
+
   useEffect(() => {
-    if (progress >= 100) {
-      handleComplete()
+    if (status === FILE_STATUS.DONE) {
+      setProgress(100)
     }
-  }, [progress])
+  }, [status])
+
 
   return (
     <div>
@@ -44,7 +40,7 @@ export const ProgressBar = ({ handleComplete, status }: IProgressBar) => {
           className="h-full bg-purple-500 transition-all rounded-md" 
           style={{ 
             width: `${progress}%`, 
-            background: status == STATUS.LOADING 
+            background: status == FILE_STATUS.LOADING 
               ? 'linear-gradient(92deg, #5D95E6 0%, #935AFF 100%)' 
               : '#58BCA4'
           }} 

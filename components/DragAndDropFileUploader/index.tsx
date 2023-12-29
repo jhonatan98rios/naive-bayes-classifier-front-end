@@ -1,72 +1,42 @@
-import { DropzoneComponent } from './DropzoneComponent';
-import { uploadFile, fileValidation, formatFileSize } from '@/usecases/FileUpload';
-import { Condition } from '../Condition';
-import { ProgressBar } from './ProgressBar';
-import { useState } from 'react';
+import { DropzoneComponent } from './DropzoneComponent'
+import { formatFileSize } from '@/usecases/FileUpload'
+import { Condition } from '../Condition'
+import { ProgressBar } from './ProgressBar'
+import { FILE_STATUS } from '@/domain/entities/FileStatus'
 
-
-/* 
-[x] Upload de arquivo 
-[x] Drag and Drop
-[ ]
-[ ]
-[ ]
-[ ]
-*/
-
-enum STATUS {
-  NOFILE = 0,
-  LOADING = 1,
-  DONE = 2,
-  ERROR = 3
-}
 
 interface IDragAndDropFileUploader {
-  status: STATUS,
-  setStatus: (status: STATUS) => void,
+  handleFileChange: Function
+  file: File 
+  setFile: (file: File | undefined) => void
+  status: FILE_STATUS
+  setStatus: (status: FILE_STATUS) => void
 }
 
-export const DragAndDropFileUploader = ({ status, setStatus }: IDragAndDropFileUploader) => {
-
-  const [ file, setFile ] = useState<File>()
-
-  async function handleDrop([file]: File[]) {
-    
-    if (!fileValidation(file)) console.log("invalid file")
-
-    const uploadedFile = await uploadFile(file)
-    console.log(uploadedFile)
-
-    setStatus(STATUS.LOADING)
-    setFile(file)
-  }
-
-  function handleUploadComplete() {
-    setStatus(STATUS.DONE)
-  }
+export const DragAndDropFileUploader = ({ handleFileChange, file, setFile, status, setStatus }: IDragAndDropFileUploader) => {
 
   function handleCancel() {
-    setStatus(STATUS.NOFILE)
+    setStatus(FILE_STATUS.NOFILE)
     setFile(undefined)
   }
 
   return (
     <div>
-      <Condition condition={status == STATUS.NOFILE}>
+      <Condition condition={status == FILE_STATUS.NOFILE}>
         <div className='dag-and-drop'>
           <p className='text-base font-semibold text-gray-500 mb-2'> 
             Faça o upload do arquivo de treino 
           </p>
-          <DropzoneComponent handleDrop={handleDrop} />
+          <DropzoneComponent handleDrop={handleFileChange} />
         </div>
       </Condition>
 
-      <Condition condition={[STATUS.LOADING, STATUS.DONE].includes(status)}>
+      <Condition condition={[FILE_STATUS.LOADING, FILE_STATUS.DONE].includes(status)}>
         <div>
-          <ProgressBar status={status} handleComplete={handleUploadComplete}  />
+          <ProgressBar status={status}  />
 
           <p className="text-xs text-purple-500 text-center mt-3 cursor-pointer" onClick={handleCancel}>
-            { status == STATUS.LOADING ? 'Cancelar Upload' : 'Substituir arquivo' }
+            { status == FILE_STATUS.LOADING ? 'Cancelar Upload' : 'Substituir arquivo' }
           </p>
 
           <Condition condition={!!file}>
@@ -79,7 +49,7 @@ export const DragAndDropFileUploader = ({ status, setStatus }: IDragAndDropFileU
         </div>
       </Condition>
 
-      <Condition condition={status == STATUS.ERROR}>
+      <Condition condition={status == FILE_STATUS.ERROR}>
         <p> Error </p>
       </Condition>
     </div>
