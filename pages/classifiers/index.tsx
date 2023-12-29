@@ -1,12 +1,12 @@
 import { ClassifierDTO, STATUS } from '@/domain/entities/Classifier'
-import useDidMount from '@/hooks/hooks'
+import useDidMount, { validateToken } from '@/hooks/hooks'
 import { GetServerSideProps } from 'next'
 import { Session, getServerSession } from 'next-auth'
 import Link from 'next/link'
 import { useState } from 'react'
 import { authOptions } from "../api/auth/[...nextauth]"
 import { ClassifierCard } from '@/components/ClassifierCard'
-import DragAndDrop from '@/components/DragAndDrop'
+import { readInProgressClassifiers } from '@/usecases/ReadInProgressClassifierStatus'
 
 
 interface ClassifiersProps {
@@ -18,45 +18,11 @@ export default function Classifiers({ _classifiers, session }: ClassifiersProps)
 
   const [classifiers, setClassifiers] = useState<ClassifierDTO[]>(_classifiers)
 
-  async function fetchClassifierStatus(id: string): Promise<ClassifierDTO> {
-    const response = await fetch(`http://localhost:3002/read-classifier/${id}`, {
-      headers: {
-        //@ts-ignore
-        "Authorization": session?.accessToken,
-      }
-    });
-
-    const data: ClassifierDTO = await response.json()
-    return data
-  }
-
   async function updateInProgressClassifiers() {
-    let areThereInProgressClassifiers = false
-    let areThereChanges = false
 
-    console.log("updating...")
-
-    if (!classifiers || classifiers.length <= 0) {
-      return []
-    }
-
-    const updatedClassifiers = await Promise.all(
-      classifiers.map(async classifier => {
-        if (classifier.status !== STATUS.INPROGRESS) {
-          return classifier
-        }
-
-        areThereInProgressClassifiers = true
-        const updatedClassifier = await fetchClassifierStatus(classifier.id)
-
-        if (classifier.status !== updatedClassifier.status) {
-          areThereChanges = true
-          classifier = updatedClassifier
-        }
-
-        return classifier
-      })
-    )
+    if (!classifiers || classifiers.length <= 0) return []
+    
+    const { updatedClassifiers, areThereChanges, areThereInProgressClassifiers } = await readInProgressClassifiers(classifiers, session)
 
     if (areThereChanges) {
       console.log('ThereAreChanges')
@@ -70,14 +36,12 @@ export default function Classifiers({ _classifiers, session }: ClassifiersProps)
   }
 
   useDidMount(() => {
-    // HTTP Pooling
+    // Start HTTP Pooling
     setTimeout(updateInProgressClassifiers, 5000)
   })
 
   return (
     <main className="flex min-h-screen flex-col p-4">
-      {/* <DragAndDrop /> */}
-
       {
         !(classifiers && classifiers.length > 0) &&
         <p className='mx-auto mt-64 text-2xl text-gray-500 text-center'> 
@@ -113,7 +77,9 @@ export const getServerSideProps: GetServerSideProps<{ _classifiers: ClassifierDT
     authOptions
   )
 
-  if (!session || !session.user) {
+  const isValidToken = await validateToken(session?.accessToken)
+
+  if (!session || !session.user || !isValidToken) {
     return { props: { _classifiers: [] }, redirect: { destination: '/' } }
   }
 

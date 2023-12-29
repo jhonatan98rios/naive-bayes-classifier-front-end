@@ -1,33 +1,33 @@
 import { GetServerSideProps } from 'next'
 import { ClassifierDTO } from '@/domain/entities/Classifier'
 import { useState } from 'react'
+import { Session, getServerSession } from 'next-auth'
+import { authOptions } from '@/pages/api/auth/[...nextauth]'
+import { validateToken } from '@/hooks/hooks'
+import { executeClassification } from '@/usecases/ExecuteClassification'
+import { readClassifier } from '@/usecases/ReadInProgressClassifierStatus'
 
 interface ClassifyProps {
   classifier: ClassifierDTO
+  session: Session
 }
 
-export default function Classify({ classifier }: ClassifyProps) {
+export default function Classify({ classifier, session }: ClassifyProps) {
 
   const [sample, setSample] = useState('')
   const [classification, setClassification] = useState('')
 
   async function handleClassification() {
 
+    if (!session) return
+
     const data = {
       sample,
       id: classifier.id
     }
 
-    const response = await fetch('http://localhost:3002/classify', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    const value = await response.json();
-    setClassification(value.classification)
+    const response = await executeClassification(data, session)
+    setClassification(response.classification)
   }
 
   return (
@@ -67,10 +67,19 @@ export default function Classify({ classifier }: ClassifyProps) {
 }
 
 
-export const getServerSideProps: GetServerSideProps<{classifier: ClassifierDTO}> = (async (context) => {
+export const getServerSideProps: GetServerSideProps = (async (context) => {
+
+  const session = await getServerSession(
+    context.req, context.res, authOptions
+  )
+
+  const isValidToken = await validateToken(session?.accessToken)
+
+  if (!session || !session.user || !isValidToken) {
+    return { props: {}, redirect: { destination: '/' } }
+  }
 
   const id = context.params?.id as string
-  const res = await fetch("http://localhost:3002/read-classifier/" + id)
-  const classifier: ClassifierDTO = await res.json()
-  return { props: { classifier } }
+  const classifier: ClassifierDTO = await readClassifier(id, session)
+  return { props: { classifier, session } }
 })

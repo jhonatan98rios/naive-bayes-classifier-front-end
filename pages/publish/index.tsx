@@ -1,117 +1,95 @@
-import { useState, ChangeEvent, useEffect } from 'react'
-import { useRouter } from 'next/navigation';
-import { ClassifierDTO } from '@/domain/entities/Classifier';
-import { useSession } from 'next-auth/react';
-import { authOptions } from '../api/auth/[...nextauth]';
-import { getServerSession } from 'next-auth';
 import { GetServerSideProps } from 'next';
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+
+import { authOptions } from '../api/auth/[...nextauth]';
 import { DragAndDropFileUploader } from '@/components/DragAndDropFileUploader';
-import { uploadFile } from '@/usecases/FileUpload';
+import { fileValidation, uploadFile } from '@/usecases/FileUpload';
+import { MultiEmailInput } from '@/components/MultiEmailInput';
+import { createClassifier } from '@/usecases/CreateClassifier';
+import { CreateClassifierDTO } from '@/domain/dtos/CreateClassifierDTO';
+import { FILE_STATUS } from '@/domain/entities/FileStatus';
+import { VISIBILITY } from '@/domain/entities/Visibility';
+import { validateToken } from '@/hooks/hooks';
 
-enum STATUS {
-  NOFILE = 0,
-  LOADING = 1,
-  DONE = 2,
-  ERROR = 3
-}
 
-enum VISIBILITY {
-  public = 'public',
-  private = 'private'
-}
-
-export default function Publish() {
+export default function Publish({ session }: any) {
 
   const router = useRouter();
-  const [name, setName] = useState('')
 
+  const [id, setId] = useState()
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [owners, setOwners] = useState<string[]>([ ])
 
   const [visibility, setVisibility] = useState<VISIBILITY>(VISIBILITY.public)
-  const [file, setFile] = useState<any>()
-
+  const [file, setFile] = useState<File>()
   const [path, setPath] = useState()
-  const [id, setId] = useState()
 
-  const [status, setStatus] = useState<STATUS>(STATUS.NOFILE)
+  const [status, setStatus] = useState<FILE_STATUS>(FILE_STATUS.NOFILE)
 
-  const { data: session } = useSession()
+  useEffect(() => {
+    if (session?.user?.email) setOwners([ session?.user?.email ])
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
+  }, [session])
 
-      const file = e.target.files[0]
-      setFile(file);
-      setStatus(STATUS.LOADING)
 
-      try {
-        //@ts-ignore
-        const { path: uploadedFilePath, id: uploadedFileId } = await uploadFile(file)
+  const handleFileChange = async ([file]: File[]) => {
 
-        setPath(uploadedFilePath)
-        setId(uploadedFileId)
+    if (!session) return
+    if (!fileValidation(file)) console.log("Invalid file")
 
-        setTimeout(() => {
-          setStatus(STATUS.DONE)
-        }, 1500);
-
-      } catch (err) {
-        setStatus(STATUS.ERROR)
-        // throw Error(JSON.stringify(err))
-        console.log(err)
-      }
-    }
-  };
-
-  const handleUploadClick = async (e: any) => {
-    e.preventDefault()
-    if (!file) return;
-
-    await uploadData()
-  };
-
-  const uploadData = async () => {
-
-    const classifierData = new ClassifierDTO({
-      id: id!,
-      path: path!,
-      name: name!,
-      size: 0,
-      format: "text/csv",
-      type: "nlp-classifier",
-      status: "inProgress",
-      isPublic: visibility == VISIBILITY.public,
-      owners: [session?.user?.email!]
-    })
-
-    console.log('classifierData:')
-    console.log(classifierData)
+    setFile(file);
+    setStatus(FILE_STATUS.LOADING)
 
     try {
-      const res = await fetch('http://localhost:3001/publish', {
-        method: 'POST',
-        body: JSON.stringify(classifierData),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
+      const { path: uploadedFilePath, id: uploadedFileId } = await uploadFile(file, session)
 
-      console.log(res)
+      setPath(uploadedFilePath)
+      setId(uploadedFileId)
+
+      setTimeout(() => {
+        setStatus(FILE_STATUS.DONE)
+
+      }, 1500);
 
     } catch (err) {
-
-      console.log('err')
+      setStatus(FILE_STATUS.ERROR)
+      // throw Error(JSON.stringify(err))
       console.log(err)
-      throw Error(JSON.stringify(err))
-
-    } finally {
-      router.push("/classifiers");
-    }
+    } 
   }
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault()
+    if (!file) return;
+    if (!session) return
+
+    const createClassifierDTO = new CreateClassifierDTO({
+      id: id!,
+      name: name,
+      description: description,
+      size: file?.size!,
+      format: file?.type!,
+      path: path!,
+      status: "inProgress",
+      isPublic: visibility == VISIBILITY.public,
+      owners: owners
+    })
+  
+    console.log('classifierData:')
+    console.log(createClassifierDTO)
+  
+    createClassifier(createClassifierDTO, session)
+      .then(() => {
+        router.push("/classifiers?u=true");
+      })
+  };
 
 
   return (
     <main className='flex min-h-screen flex-col p-4'>
-
       <div className='bg-white rounded-2xl mt-48 p-8 shadow-md drop-shadow-sm w-full max-w-3xl mx-auto'>
 
         <h1 className='text-xl mb-4 font-semibold text-gray-500 text-center'> Informe os dados do modelo </h1>
@@ -124,6 +102,7 @@ export default function Publish() {
                 <label htmlFor="" className='mb-2 font-semibold text-gray-500'> Nome do modelo: </label>
                 <input
                   type="text"
+                  id="classifier_name"
                   name="classifier_name"
                   className='w-80 border rounded border-gray-300 py-2 px-4'
                   value={name} onChange={(e) => setName(e.target.value)}
@@ -133,16 +112,19 @@ export default function Publish() {
               <div className='flex flex-col mb-4'>
                 <label htmlFor="" className='mb-2 font-semibold text-gray-500'> Descrição do modelo: </label>
                 <textarea
-                  name="classifier_name"
+                  id="classifier_description"
+                  name="classifier_description"
                   className='w-80 border h-36 rounded border-gray-300 py-2 px-4 resize-y'
-                  value={name} onChange={(e) => setName(e.target.value)}
+                  value={description} onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
-
             </div>
 
             <div className='w-6/12'>
               <DragAndDropFileUploader 
+                handleFileChange={handleFileChange}
+                file={file!}
+                setFile={setFile}
                 status={status} 
                 setStatus={setStatus} 
               />
@@ -151,13 +133,7 @@ export default function Publish() {
 
           <div>
             <div className='flex flex-col mb-4'>
-              <label htmlFor="" className='mb-2 font-semibold text-gray-500'> Proprietarios pelo modelo: </label>
-              <input
-                type="text"
-                name="classifier_name"
-                className='w-full border rounded border-gray-300 py-2 px-4'
-                value={name} onChange={(e) => setName(e.target.value)}
-              />
+              <MultiEmailInput owners={owners} setOwners={setOwners} />
             </div>
 
             <div className='flex flex-col mb-6'>
@@ -178,27 +154,25 @@ export default function Publish() {
               </div>
 
               <ul className='text-[10px] list-disc ml-12 font-semibold text-gray-500'>
-                <li> Modelos públicos podem ser utilizados por qualquer um com uma conta, mas só podem ser editados pelos proprietarios </li>
-                <li> Modelos privados somente podem ser acessados e editados pelos proprietarios </li>
+                <li> Modelos públicos podem ser acessados por qualquer um com uma conta, mas só podem ser editados pelos proprietarios </li>
+                <li> Modelos privados podem ser acessados e editados somente pelos proprietarios </li>
               </ul>             
             </div>
           </div>
 
           <button
-            onClick={handleUploadClick}
+            onClick={handleSubmit}
             className={`
-              flex font-semibold py-2 border rounded-xl w-full justify-center
-              ${ true ? 'bg-gray-400 text-white' : '' }
+              flex font-semibold py-2 border rounded-xl w-full justify-center text-white  rgba(93, 149, 230, 1), 
+              ${ (name && description && file && owners && status == FILE_STATUS.DONE ) ? 'bg-gradient-to-r from-[#5D95E6] to-[#935AFF]' : 'bg-gray-400' }
             `}
           >
             Confirmar criação do modelo
           </button>
 
           {
-            status == STATUS.ERROR &&
-            <>
-              <p className='text-red-400 font-medium mt-4'> Erro ao fazer o upload. Tente novamente mais tarde! </p>
-            </>
+            status == FILE_STATUS.ERROR &&
+            <p className='text-red-400 font-medium mt-4'> Erro ao fazer o upload. Tente novamente mais tarde! </p>
           }
 
         </form>
@@ -212,14 +186,12 @@ export default function Publish() {
 export const getServerSideProps: GetServerSideProps = (async (context) => {
 
   const session = await getServerSession(
-    context.req,
-    context.res,
-    authOptions
+    context.req, context.res, authOptions
   )
 
-  console.log(session)
+  const isValidToken = await validateToken(session?.accessToken)
 
-  if (!session || !session.user) {
+  if (!session || !session.user || !isValidToken) {
     return { props: {}, redirect: { destination: '/' } }
   }
 
