@@ -16,8 +16,7 @@ export function ClassifierCard({ classifier }: ClassifierCardProps) {
           
           <p className="text-xl font-medium mb-1"> Descrição </p>
           <p className="text-sm mb-3 max-w-[90%]"> 
-            Admodum accumsan disputationi eu sit. Vide electram sadipscing et per.
-            Pellentesque nec nulla ligula. Donec gravida turpis a vulputate ultricies.
+            { classifier.description }
           </p>
         </div>
         
@@ -43,12 +42,6 @@ export function ClassifierCard({ classifier }: ClassifierCardProps) {
           )
         }
       </div>
-
-      {
-        classifier.status != "ready" && (
-          <div className="w-full h-1 mt-7 bg-[#7979F4]" />
-        )
-      }
     </div>
   )
 }

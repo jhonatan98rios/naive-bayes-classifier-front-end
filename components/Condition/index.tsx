@@ -1,8 +1,9 @@
+import { PropsWithChildren } from "react"
+
 interface ICondition {
   condition: boolean
-  children: JSX.Element
 }
 
-export function Condition({ condition, children }: ICondition) {
+export function Condition({ condition, children }: PropsWithChildren<ICondition>) {
   return condition && children
 }

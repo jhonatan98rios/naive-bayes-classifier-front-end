@@ -2,12 +2,14 @@ import { signOut, useSession } from "next-auth/react";
 import { Profile } from "./Profile";
 import { ExpandableIconButton } from "./ExpandableIconButton";
 import { useState } from "react";
+import { useRouter } from "next/router";
 
 
 export default function Navbar({  }) {
 
   const { data: session } = useSession()
   const [isExpanded, setExpanded] = useState(false)
+  const router = useRouter()
 
   async function handleSignOut() {
     signOut()
@@ -35,7 +37,7 @@ export default function Navbar({  }) {
             alt="Ícone de modelos"
             text="Modelos"
             isExpanded={isExpanded}
-            handleClick={() => { }}
+            handleClick={() => { router.push('/classifiers?visibility=private') }}
           />
         </li>
 
@@ -44,7 +46,7 @@ export default function Navbar({  }) {
             alt="Ícone de comunidade"
             text="Comunidade"
             isExpanded={isExpanded}
-            handleClick={() => { }}
+            handleClick={() => { router.push('/classifiers?visibility=public') }}
           />
         </li>
 
