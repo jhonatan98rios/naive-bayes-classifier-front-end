@@ -7,7 +7,7 @@ export const createClassifier = async (createClassifierDTO: CreateClassifierDTO,
   console.log(createClassifierDTO)
 
   try {
-    const res = await fetch('http://localhost:3001/publish', {
+    const res = await fetch(process.env.NEXT_PUBLIC_PUBLISH_ENDPOINT!, {
       method: 'POST',
       body: JSON.stringify(createClassifierDTO),
       headers: {
@@ -17,13 +17,13 @@ export const createClassifier = async (createClassifierDTO: CreateClassifierDTO,
       },
     })
 
-    console.log(res)
+    const json = await res.json()
+    console.log(json)
 
   } catch (err) {
 
-    console.log('err')
     console.log(err)
-    throw Error(JSON.stringify(err))
+    throw new Error(`Erro ao fazer a publicação: ${err}`)
 
   }
 }

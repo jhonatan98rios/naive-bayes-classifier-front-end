@@ -11,10 +11,10 @@ export function ClassifierCard({ classifier }: ClassifierCardProps) {
       <div className="flex justify-between">
 
         <div className="flex flex-col text-gray-500">
-          <p className="text-xl font-medium mb-1"> Nome do modelo </p>
-          <p className="text-sm mb-3"> {classifier.name} </p>
+          <p className="text-sm font-bold mb-1"> Nome do modelo </p>
+          <p className="text-xl mb-3"> {classifier.name} </p>
           
-          <p className="text-xl font-medium mb-1"> Descrição </p>
+          <p className="text-sm font-bold mb-1"> Descrição </p>
           <p className="text-sm mb-3 max-w-[90%]"> 
             { classifier.description }
           </p>

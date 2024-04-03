@@ -11,7 +11,7 @@ type Response = {
 
 export const executeClassification = async (data: Sample, session: Session) => {
 
-    const response = await fetch('http://localhost:3002/classify', {
+    const response = await fetch(process.env.NEXT_PUBLIC_CLASSIFY_ENDPOINT!, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

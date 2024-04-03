@@ -2,7 +2,7 @@ import { ClassifierDTO, STATUS } from "@/domain/entities/Classifier";
 import { Session } from "next-auth";
 
 export async function readClassifier(id: string, session: Session): Promise<ClassifierDTO> {
-  const response = await fetch(`http://localhost:3002/read-classifier/${id}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_READ_CLASSIFIER_ENDPOINT}${id}`, {
     headers: {
       //@ts-ignore
       "Authorization": session?.accessToken,

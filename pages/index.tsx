@@ -7,7 +7,8 @@ export default function Home() {
   useEffect(() => {
 
     if (document && document.querySelector('body')) {
-      const body = document.querySelector('body')!
+      const body = document.querySelector('body')
+      if (!body) return
       body.style.overflow = "hidden"
       body.style.height = window.innerHeight + "px"
       body.style.width = window.innerWidth + "px"

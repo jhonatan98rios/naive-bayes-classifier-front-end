@@ -16,21 +16,28 @@ export const uploadFile = async (file: File, session: Session) => {
   formData.append('filename', file.name)
   formData.append('file', file)
 
-  const uploadRes = await fetch('http://localhost:3001/upload', {
-    method: 'POST',
-    body: formData,
-    headers: {
-      "Access-Control-Allow-Origin": "http://localhost:3000",
-      //@ts-ignore
-      "Authorization": session?.accessToken,
-    }
-  })
+  try {
+    const uploadRes = await fetch(process.env.NEXT_PUBLIC_UPLOAD_ENDPOINT!, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        //@ts-ignore
+        "Authorization": session?.accessToken,
+      }
+    })
+  
+    const fileUploadRes = await uploadRes.json()
+  
+    console.log('fileUploadRes')
+    console.log(fileUploadRes)
+    
+    return fileUploadRes
+  }
+  catch (err) {
+    console.log(err)
+    throw new Error(`Erro ao fazer o upload: ${err}`)
+  }
 
-  const fileUploadRes = await uploadRes.json()
-
-  console.log('fileUploadRes')
-  console.log(fileUploadRes)
-  return fileUploadRes
 }
 
 

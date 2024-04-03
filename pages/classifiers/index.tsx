@@ -84,7 +84,7 @@ export const getServerSideProps: GetServerSideProps<{ _classifiers: ClassifierDT
   }
 
   try {
-    const response = await fetch("http://localhost:3002/list-classifiers", {
+    const response = await fetch(process.env.NEXT_PUBLIC_LIST_CLASSIFIERS_ENDPOINT!, {
       headers: {
         "Authorization": session?.accessToken,
       }

@@ -13,7 +13,7 @@ export default function useDidMount(callback: Function) {
 
 /* TODO: Tratar no getServerSideProps de cada página */
 export async function validateToken(token: string) {
-  const res = await fetch(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${token}`)
+  const res = await fetch(`${process.env.NEXT_PUBLIC_GOOGLE_OAUTH2!}=${token}`)
   const data = await res.json()
   
   if(data.error == "invalid_token" || !data.email) {
