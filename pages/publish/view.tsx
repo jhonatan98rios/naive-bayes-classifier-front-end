@@ -11,6 +11,8 @@ interface IPublishView {
   setName: Dispatch<SetStateAction<string>>,
   description: string, 
   setDescription:  Dispatch<SetStateAction<string>>,
+  type: string,
+  setType: Dispatch<SetStateAction<string>>,
   owners: string[], 
   setOwners:  Dispatch<SetStateAction<string[]>>,
   visibility: VISIBILITY, 
@@ -26,6 +28,7 @@ export default function PublishView({
   handleFileChange,
   name, setName,
   description, setDescription,
+  type, setType,
   owners, setOwners,
   visibility, setVisibility,
   file, setFile,
@@ -61,6 +64,19 @@ export default function PublishView({
                   className='w-80 border h-36 rounded border-gray-300 py-2 px-4 resize-y'
                   value={description} onChange={(e) => setDescription(e.target.value)}
                 />
+              </div>
+
+              <div className='flex flex-col mb-4'>
+                <label htmlFor="" className='mb-2 font-semibold text-gray-500'> Tipo de modelo: </label>
+                <select
+                  id="classifier_type"
+                  name="classifier_type"
+                  className='w-80 border rounded border-gray-300 py-2 px-4 resize-y text-gray-700'
+                  value={type} onChange={(e) => setType(e.target.value)}
+                >
+                  <option className='text-gray-700' value={"num"}> Classificação Tradicional Numérica </option>
+                  <option className='text-gray-700' value={"nlp"}> Processamento de Linguagem Natural </option>
+                </select>
               </div>
             </div>
 

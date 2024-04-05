@@ -11,7 +11,7 @@ export const DropzoneComponent = ({ handleDrop }: any) => {
 
         <div
           {...getRootProps()}
-          className='border-2 border-dashed border-gray-300 text-center flex flex-col justify-center items-center rounded-2xl pt-12 pb-8'
+          className='border-2 border-dashed border-gray-300 text-center flex flex-col justify-center items-center rounded-2xl pt-12 pb-8 h-80'
         >
           <input {...getInputProps()} multiple={false} />
 

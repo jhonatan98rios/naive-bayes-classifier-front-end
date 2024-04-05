@@ -14,6 +14,7 @@ export function usePublishModel({ session }: any) {
   const [id, setId] = useState()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [type, setType] = useState('num')
   const [owners, setOwners] = useState<string[]>([])
   const [visibility, setVisibility] = useState<VISIBILITY>(VISIBILITY.public)
   const [file, setFile] = useState<File>()
@@ -55,6 +56,7 @@ export function usePublishModel({ session }: any) {
       id: id!,
       name: name,
       description: description,
+      type: type, 
       size: file?.size!,
       format: file?.type!,
       path: path!,
@@ -78,6 +80,7 @@ export function usePublishModel({ session }: any) {
     id, setId,
     name, setName,
     description, setDescription,
+    type, setType,
     owners, setOwners,
     visibility, setVisibility,
     file, setFile,
